@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Register / Sign In</title>
+  <!-- ====== Styles ====== -->
+  <style>
+    :root { --bg:#0f172a; --card:#1f2345; --radius:14px; --shadow:0 25px 60px -10px rgba(0,0,0,0.35); --accent:#7c3aed; --accent2:#6366f1; --text:#f0f6fc; --muted:#9aa3b0; --transition:.35s cubic-bezier(.4,.2,.2,1); font-family: system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; }
+    *{box-sizing:border-box;}
+    body{margin:0;min-height:100vh;background: radial-gradient(ellipse at top left, rgba(124,58,237,0.35) 0%, rgba(15,23,42,1) 75%);display:flex;align-items:center;justify-content:center;padding:1rem;color: var(--text);}
+    .wrapper{width:100%;max-width:600px;display:flex;flex-direction:column;gap:1rem;padding:1rem;}
+    .card{background: var(--card);border-radius: var(--radius);padding:2rem 2.25rem;position:relative;overflow:hidden;box-shadow: var(--shadow);display:flex;flex-direction:column;transition: transform var(--transition);}
+    .card:hover{transform: translateY(-3px);}
+    .tab-switcher{display:flex;gap:10px;margin-bottom:1rem;border-radius:8px;overflow:hidden;background: rgba(255,255,255,0.04);}
+    .tab{flex:1;padding:10px 14px;text-align:center;cursor:pointer;font-weight:600;position:relative;background:transparent;border:none;color: var(--muted);transition: background var(--transition);user-select:none;border-radius:6px;}
+    .tab.active{background: linear-gradient(135deg,var(--accent), var(--accent2));color:#fff;}
+    .title{margin:0;font-size:1.75rem;letter-spacing:0.5px;}
+    .subtitle{font-size:0.9rem;color: var(--muted);margin:4px 0 12px;}
+    .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+    .form-group{margin-top:1rem;display:flex;flex-direction:column;}
+    .form-group label{font-weight:600;margin-bottom:6px;}
+    .form-control{position:relative;display:flex;align-items:center;}
+    .form-control input, .form-control select, .form-control textarea{width:100%;padding:12px 16px;border:1px solid rgba(255,255,255,0.1);border-radius:10px;background:rgba(255,255,255,0.04);color: var(--text);font-size:1rem;outline:none;transition: all .2s;resize:vertical;}
+    .form-control input::placeholder{color:rgba(255,255,255,0.5);}
+    .form-control input:focus, .form-control select:focus, .form-control textarea:focus{border-color: #a78bfa;box-shadow: 0 0 0 4px rgba(124,58,237,0.25);}
+    .toggle-btn{position:absolute;right:10px;background:none;border:none;cursor:pointer;font-size:0.85rem;padding:4px;color: var(--accent2);user-select:none;}
+    .helper{display:flex;justify-content: space-between;font-size:0.7rem;margin-top:5px;}
+    .password-meter{height:6px;background: rgba(255,255,255,0.08);border-radius:4px;overflow:hidden;margin-top:8px;}
+    .password-meter>div{height:100%;width:0;transition:width .3s;background: linear-gradient(90deg,#f59e0b,#10b981);}
+    .error{color:#ff6b6b;font-size:0.75rem;margin-top:4px;}
+    .success{color:#2dd36f;font-size:0.8rem;margin-top:6px;}
+    .submit-btn{margin-top:1.6rem;width:100%;padding:14px;border:none;border-radius:12px;background: linear-gradient(135deg,var(--accent), var(--accent2));color:#fff;font-size:1rem;font-weight:700;cursor:pointer;letter-spacing:1px;position:relative;overflow:hidden;transition: filter .2s;}
+    .submit-btn:hover{filter:brightness(1.05);}
+    .submit-btn:disabled{opacity:0.6;cursor:not-allowed;}
+    .alt-action{margin-top:12px;font-size:0.85rem;text-align:center;}
+    .alt-action a{color: var(--accent);text-decoration:none;font-weight:600;}
+    .remember-forgot{display:flex;justify-content:space-between;align-items:center;margin-top:8px;font-size:0.75rem;}
+    .checkbox{display:flex;align-items:center;gap:6px;}
+    .social-row{display:flex;gap:12px;margin-top:10px;}
+    .social-btn{flex:1;padding:10px;border-radius:8px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;gap:6px;font-size:0.8rem;cursor:pointer;transition: background var(--transition);} 
+    .social-btn:hover{background:rgba(255,255,255,0.12);}
+    .divider{display:flex;align-items:center;gap:8px;margin:1.5rem 0;}
+    .divider::before,.divider::after{content:'';flex:1;height:1px;background:rgba(255,255,255,0.08);}
+    .divider span{font-size:0.75rem;color: var(--muted);}
+    .inline-link{color: #c4c9e8;text-decoration:none;}
+    .username-hint{background: rgba(255,255,255,0.04);padding:6px 12px;border-radius:8px;font-size:0.65rem;margin-top:4px;}
+    .full-width{grid-column:1 / -1;}
+    @media (max-width: 800px){.form-grid{grid-template-columns:1fr;} .wrapper{max-width:100%;}.card{padding:1.5rem;}}
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="card" aria-label="Authentication">
+      <!-- Tabs -->
+      <div class="tab-switcher">
+        <button class="tab active" data-target="registerPanel">Create Account</button>
+        <button class="tab" data-target="signInPanel">Sign In</button>
+      </div>
+
+      <!-- Create Account Panel -->
+      <div id="registerPanel">
+        <h2 class="title">Create Account</h2>
+        <div class="subtitle">College registration: provide accurate academic & personal details.</div>
+        <form id="registerForm" novalidate>
+          <!-- Personal & Academic Details -->
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="full-name">Full Name</label>
+              <div class="form-control">
+                <input type="text" id="full-name" name="fullName" placeholder="Your full name" required>
+              </div>
+              <div id="nameFeedback" class="error" style="display:none;"></div>
+            </div>
+            <div class="form-group">
+              <label for="student-id">Student ID / Roll No.</label>
+              <div class="form-control">
+                <input type="text" id="student-id" name="studentId" placeholder="e.g., 24200806969" required>
+              </div>
+              <div id="idFeedback" class="error" style="display:none;"></div>
+            </div>
+            <div class="form-group">
+              <label for="email">College Email</label>
+              <div class="form-control">
+                <input type="email" id="email" name="email" placeholder="24200806969@klh.edu.in" required>
+              </div>
+              <div id="emailFeedback" class="error" style="display:none;"></div>
+            </div>
+            <div class="form-group">
+              <label for="department">Department</label>
+              <div class="form-control">
+                <select id="department" name="department" required>
+                  <option value="">Select department</option>
+                  <option>CSE</option>
+                  <option>AI & DS</option>
+                  <option>CSIT</option>
+                  <option>ECE</option>
+                  <option>Other</option>
+                </select>
+              </div>
+              <div id="deptFeedback" class="error" style="display:none;"></div>
+            </div>
+
+            <!-- Year (or) Semester -->
+
+            <div class="form-group">
+              <label for="year">Year / Semester</label>
+              <div class="form-control">
+                <select id="year" name="year" required>
+                  <option value="">Select</option>
+                  <option>1st Year (1st Semester)</option>
+                  <option>1st Year (2nd Semester)</option>
+                  <option>2nd Year (3rd Semester)</option>
+                  <option>2nd Year (4th Semester)</option>
+                  <option>3rd Year (5th Semester)</option>
+                  <option>3rd Year (6th Semester)</option>
+                  <option>4th Year (7th Semester)</option>
+                  <option>4th Year (8th Semester)</option>
+                  <option>Other</option>
+                </select>
+              </div>
+              <div id="yearFeedback" class="error" style="display:none;"></div>
+            </div>
+
+            <!-- Phone number  -->
+
+            <div class="form-group">
+              <label for="phone">Phone Number</label>
+              <div class="form-control">
+                <input type="tel" id="phone" name="phone" placeholder="+91 9876543210" required>
+              </div>
+              <div id="phoneFeedback" class="error" style="display:none;"></div>
+            </div>
+
+            <!-- Date of birth  -->
+
+            <div class="form-group">
+              <label for="dob">Date of Birth</label>
+              <div class="form-control">
+                <input type="date" id="dob" name="dob" required>
+              </div>
+              <div id="dobFeedback" class="error" style="display:none;"></div>
+            </div>
+
+            <!-- Address details  -->
+
+            <div class="form-group full-width">
+              <label for="address">Address</label>
+              <div class="form-control">
+                <textarea id="address" name="address" rows="2" placeholder="Permanent address" required></textarea>
+              </div>
+              <div id="addrFeedback" class="error" style="display:none;"></div>
+            </div>
+
+            <!-- Gender detalis  -->
+
+            <div class="form-group">
+              <label for="gender">Gender</label>
+              <div class="form-control">
+                <select id="gender" name="gender" required>
+                  <option value="">Select</option>
+                  <option>Male</option>
+                  <option>Female</option>
+                </select>
+              </div>
+              <div id="genderFeedback" class="error" style="display:none;"></div>
+            </div>
+
+            <!-- Emergency contact  -->
+
+            <div class="form-group">
+              <label for="emergency">Emergency Contact</label>
+              <div class="form-control">
+                <input type="text" id="emergency" name="emergency" placeholder="Name & phone" required>
+              </div>
+              <div id="emerFeedback" class="error" style="display:none;"></div>
+            </div>
+          </div>
+
+          <!-- Account credentials -->
+          <div class="divider"><span>Account credentials</span></div>
+
+          <!-- Username  -->
+
+          <div class="form-group">
+            <label for="reg-username">Username</label>
+            <div class="form-control">
+              <input type="text" id="reg-username" name="username" placeholder="e.g., 24200806969" autocomplete="username" required>
+            </div>
+            <div class="username-hint">6–20 chars. Letters, numbers, underscore allowed.</div>
+            <div id="regUsernameFeedback" class="error" aria-live="polite" style="display:none;"></div>
+          </div>
+
+          <!-- Password -->
+
+          <div class="form-group">
+            <label for="reg-password">Password</label>
+            <div class="form-control">
+              <input type="password" id="reg-password" name="password" placeholder="Create password" autocomplete="new-password" required aria-describedby="regPwHelp">
+              <button type="button" class="toggle-btn" aria-label="Show password" data-target="reg-password">Show</button>
+            </div>
+            <div class="helper">
+              <div id="regPwHelp">Min 8 chars, mix letters & numbers.</div>
+              <div id="regStrengthText">Strength: —</div>
+            </div>
+            <div class="password-meter" aria-hidden="true">
+              <div id="regStrengthBar"></div>
+            </div>
+          </div>
+
+          <!-- Confirm password  -->
+
+          <div class="form-group">
+            <label for="reg-confirm">Confirm Password</label>
+            <div class="form-control">
+              <input type="password" id="reg-confirm" name="confirm" placeholder="Re-enter password" autocomplete="new-password" required>
+              <button type="button" class="toggle-btn" aria-label="Show password" data-target="reg-confirm">Show</button>
+            </div>
+            <div id="regConfirmFeedback" class="error" aria-live="polite" style="display:none;"></div>
+          </div>
+
+          <button type="submit" class="submit-btn" id="registerBtn" disabled>Create Account</button>
+          <div class="alt-action">Already have an account? <a href="#" id="toSignIn">Sign in</a></div>
+          <div id="regMessage" class="success" aria-live="polite" style="display:none; text-align:center;"> </div>
+        </form>
+      </div>
+
+
+      <!------------------------------------------------------------------------------------------------------Sign in page ---------------------------------------------------------------------------------------------------------- -->
+
+      <!-- Sign In Panel -->
+      <div id="signInPanel" style="display:none; margin-top:10px;">
+        <h2 class="title">Sign In</h2>
+        <div class="subtitle">Welcome back! Enter your credentials.</div>
+        <form id="signInForm" novalidate>
+
+
+            <!--Username   -->
+
+
+          <div class="form-group">
+            <label for="signin-username">Username</label>
+            <div class="form-control">
+              <input type="text" id="signin-username" name="username" placeholder="your username" autocomplete="username" required>
+            </div>
+            <div id="signInUserFeedback" class="error" aria-live="polite" style="display:none;"></div>
+          </div>
+
+
+          <!-- Password -->
+
+          
+          <div class="form-group">
+            <label for="signin-password">Password</label>
+            <div class="form-control">
+              <input type="password" id="signin-password" name="password" placeholder="your password" autocomplete="current-password" required>
+              <button type="button" class="toggle-btn" aria-label="Show password" data-target="signin-password">Show</button>
+            </div>
+          </div>
+          <div class="remember-forgot">
+            <div class="checkbox"><input type="checkbox" id="remember" style="accent-color: var(--accent);"> <label for="remember">Remember me</label></div>
+            <div><a href="#" class="inline-link">Forgot?</a></div>
+          </div>
+          <button type="submit" class="submit-btn" id="signInBtn">Sign In</button>
+          <div class="divider"><span>OR</span></div>
+          <div class="social-row">
+            <div class="social-btn">Continue with Google</div>
+            <div class="social-btn">Continue with GitHub</div>
+          </div>
+          <div class="alt-action">Don't have an account? <a href="#" id="toRegister">Create one</a></div>
+          <div id="signInMessage" class="success" aria-live="polite" style="display:none; text-align:center;"> </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== Script: behavior & validation ====== -->
+  <script>
+    // Tab switching logic
+    document.querySelectorAll('.tab').forEach(t => {
+      t.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+        t.classList.add('active');
+        document.getElementById('registerPanel').style.display = t.dataset.target === 'registerPanel' ? 'block' : 'none';
+        document.getElementById('signInPanel').style.display = t.dataset.target === 'signInPanel' ? 'block' : 'none';
+      });
+    });
+    document.getElementById('toSignIn').addEventListener('click', e => { e.preventDefault(); document.querySelector('[data-target="signInPanel"]').click(); });
+    document.getElementById('toRegister').addEventListener('click', e => { e.preventDefault(); document.querySelector('[data-target="registerPanel"]').click(); });
+
+    // Toggle visibility for password fields
+    document.querySelectorAll('.toggle-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const target = document.getElementById(btn.dataset.target);
+        if (!target) return;
+        if (target.type === 'password') { target.type = 'text'; btn.textContent = 'Hide'; }
+        else { target.type = 'password'; btn.textContent = 'Show'; }
+      });
+    });
+
+    // Password strength helper
+    function assessStrength(pw) {
+      let score = 0;
+      if (pw.length >= 8) score += 1;
+      if (/[A-Z]/.test(pw)) score += 1;
+      if (/[a-z]/.test(pw)) score += 1;
+      if (/[0-9]/.test(pw)) score += 1;
+      if (/[^A-Za-z0-9]/.test(pw)) score += 1;
+      return score;
+    }
+
+    // Elements for registration validation
+    const regUsername = document.getElementById('reg-username');
+    const regPassword = document.getElementById('reg-password');
+    const regConfirm = document.getElementById('reg-confirm');
+    const registerBtn = document.getElementById('registerBtn');
+    const regMessage = document.getElementById('regMessage');
+    const regStrengthBar = document.getElementById('regStrengthBar');
+    const regStrengthText = document.getElementById('regStrengthText');
+    const regUsernameFeedback = document.getElementById('regUsernameFeedback');
+    const regConfirmFeedback = document.getElementById('regConfirmFeedback');
+
+    const fullName = document.getElementById('full-name');
+    const studentId = document.getElementById('student-id');
+    const email = document.getElementById('email');
+    const department = document.getElementById('department');
+    const year = document.getElementById('year');
+    const phone = document.getElementById('phone');
+    const dob = document.getElementById('dob');
+    const address = document.getElementById('address');
+    const gender = document.getElementById('gender');
+    const emergency = document.getElementById('emergency');
+
+    const nameFeedback = document.getElementById('nameFeedback');
+    const idFeedback = document.getElementById('idFeedback');
+    const emailFeedback = document.getElementById('emailFeedback');
+    const deptFeedback = document.getElementById('deptFeedback');
+    const yearFeedback = document.getElementById('yearFeedback');
+    const phoneFeedback = document.getElementById('phoneFeedback');
+    const dobFeedback = document.getElementById('dobFeedback');
+    const addrFeedback = document.getElementById('addrFeedback');
+    const genderFeedback = document.getElementById('genderFeedback');
+    const emerFeedback = document.getElementById('emerFeedback');
+
+    // Validation helpers
+    function validateTextField(field, feedbackElem, name) {
+      if (!field.value.trim()) { feedbackElem.textContent = name + ' is required.'; feedbackElem.style.display = 'block'; return false; }
+      feedbackElem.style.display = 'none'; return true;
+    }
+    function validateEmail() {
+      const v = email.value.trim();
+      const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!re.test(v)) { emailFeedback.textContent = 'Invalid email.'; emailFeedback.style.display='block'; return false; }
+      emailFeedback.style.display='none';
+      return true;
+    }
+    function validateSelections() {
+      let ok = true;
+      if (!department.value) { deptFeedback.textContent='Select department.'; deptFeedback.style.display='block'; ok=false; } else deptFeedback.style.display='none';
+      if (!year.value) { yearFeedback.textContent='Select year.'; yearFeedback.style.display='block'; ok=false; } else yearFeedback.style.display='none';
+      if (!gender.value) { genderFeedback.textContent='Select gender.'; genderFeedback.style.display='block'; ok=false; } else genderFeedback.style.display='none';
+      return ok;
+    }
+    function validatePhone() {
+      const v = phone.value.trim();
+      const re = /^\+?[0-9]{7,15}$/;
+      if (!re.test(v)) { phoneFeedback.textContent='Invalid phone.'; phoneFeedback.style.display='block'; return false; }
+      phoneFeedback.style.display='none';
+      return true;
+    }
+    function validateCredentialsUsername() {
+      const u = regUsername.value.trim();
+      const re = /^[a-zA-Z0-9_]{6,20}$/;
+      if (!re.test(u)) { regUsernameFeedback.textContent = 'Username must be 6–20 chars; letters, numbers, underscore.'; regUsernameFeedback.style.display = 'block'; return false; }
+      regUsernameFeedback.style.display = 'none';
+      return true;
+    }
+    function updateRegStrength() {
+      const pw = regPassword.value;
+      const score = assessStrength(pw);
+      const percent = (score/5)*100;
+      regStrengthBar.style.width = percent + '%';
+      let label = 'Very Weak';
+      if (score >=4) label='Strong';
+      else if (score===3) label='Medium';
+      else if (score===2) label='Weak';
+      regStrengthText.textContent = 'Strength: ' + label;
+    }
+    function validateRegConfirm() {
+      if (regConfirm.value !== regPassword.value) {
+        regConfirmFeedback.textContent = "Passwords don't match.";
+        regConfirmFeedback.style.display = 'block';
+        return false;
+      }
+      regConfirmFeedback.style.display = 'none';
+      return true;
+    }
+    function canRegister() {
+      return validateTextField(fullName,nameFeedback,'Full name') &&
+             validateTextField(studentId,idFeedback,'Student ID') &&
+             validateEmail() &&
+             validateSelections() &&
+             validatePhone() &&
+             validateTextField(address,addrFeedback,'Address') &&
+             validateTextField(emergency,emerFeedback,'Emergency contact') &&
+             validateCredentialsUsername() &&
+             assessStrength(regPassword.value) >= 3 &&
+             validateRegConfirm();
+    }
+    function updateRegisterState() { registerBtn.disabled = !canRegister(); }
+    [fullName, studentId, email, department, year, phone, address, gender, emergency].forEach(el => el.addEventListener('input', () => { updateRegisterState(); }));
+    regUsername.addEventListener('input', () => { validateCredentialsUsername(); updateRegisterState(); });
+    regPassword.addEventListener('input', () => { updateRegStrength(); validateRegConfirm(); updateRegisterState(); });
+    regConfirm.addEventListener('input', () => { validateRegConfirm(); updateRegisterState(); });
+
+    document.getElementById('registerForm').addEventListener('submit', e => {
+      e.preventDefault();
+      if (!canRegister()) return;
+      registerBtn.textContent='Creating...'; registerBtn.disabled=true;
+      setTimeout(() => {
+        regMessage.textContent = 'Account created for ' + regUsername.value + ' ✅';
+        regMessage.style.display='block';
+        registerBtn.textContent='Create Account'; registerBtn.disabled=false;
+        document.getElementById('registerForm').reset();
+        regStrengthBar.style.width='0'; regStrengthText.textContent='Strength: —';
+      }, 900);
+    });
+
+    // Sign in logic (mock)
+    const signInForm = document.getElementById('signInForm');
+    const signInBtn = document.getElementById('signInBtn');
+    const signInMessage = document.getElementById('signInMessage');
+    const signInUser = document.getElementById('signin-username');
+    const signInPass = document.getElementById('signin-password');
+    const signInUserFeedback = document.getElementById('signInUserFeedback');
+    signInForm.addEventListener('submit', e => {
+      e.preventDefault();
+      if (!signInUser.value.trim() || !signInPass.value) {
+        signInUserFeedback.textContent='Provide username and password.';
+        signInUserFeedback.style.display='block';
+        return;
+      }
+      signInUserFeedback.style.display='none';
+      signInBtn.textContent='Signing in...'; signInBtn.disabled=true;
+      setTimeout(() => {
+        signInMessage.textContent = 'Welcome back, ' + signInUser.value + ' 👋';
+        signInMessage.style.display='block';
+        signInBtn.textContent='Sign In'; signInBtn.disabled=false;
+        signInForm.reset();
+      }, 800);
+    });
+  </script>
+</body>
+</html>
