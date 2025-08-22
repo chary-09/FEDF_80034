@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registration Form</title>
+
+    <style>
+        body {
+            background-color: rgb(64, 149, 228);
+        }
+
+        #div1 {
+            background-color: white;
+            box-shadow: 0 0 40px rgb(0, 247, 255);
+            margin-top: 100px;
+            width: 350px;
+            height: 380px;
+            border-radius: 15px;
+            padding: 20px;
+        }
+
+        #heading {
+            margin-top: 20px;
+            color: #000;
+            font-family: Itim, sans-serif;
+            font-size: 30px;
+            font-weight: 400;
+        }
+
+        .td {
+            background-color: #636262;
+            width: 250px;
+            height: 25px;
+            text-align: center;
+            border-radius: 10px;
+            padding: 5px;
+            color: white;
+            margin: 10px auto;
+        }
+
+        .input {
+            border: none;
+            color: #ffffff;
+            outline: none;
+            background-color: #636262;
+        }
+
+        #btn {
+            background-color: rgb(95, 95, 185);
+            color: white;
+            padding: 10px 20px;
+            margin-top: 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <center>
+        <div id="div1">
+            <h2 id="heading">Login Form</h2>
+            <br>
+            <div class="td">
+                Full name : &nbsp;
+                <input type="text" id="fullname" class="input">
+            </div>
+
+            <div class="td">
+                Phone : &nbsp;
+                <input type="number" id="phone" class="input">
+            </div>
+
+            <div class="td">
+                Email : &nbsp;
+                <input type="email" id="email" class="input">
+            </div>
+
+            <div class="td">
+                Password : &nbsp;
+                <input type="password" id="password" class="input">
+            </div>
+
+            <center>
+                <button id="btn" onclick="validateForm()">Submit</button>
+            </center>
+        </div>
+    </center>
+
+    <!-- ✅ Internal JavaScript -->
+    <script>
+        function validateForm() {
+            // get input values
+            let fullname = document.getElementById("fullname").value.trim();
+            let phone = document.getElementById("phone").value.trim();
+            let email = document.getElementById("email").value.trim();
+            let password = document.getElementById("password").value.trim();
+
+            // correct credentials (you can change these as required)
+            let correctFullname = "bhanu";
+            let correctPhone = "1234567899";
+            let correctEmail = "chary@klh.edu.in";
+            let correctPassword = "1234";
+
+            let errors = [];
+
+            if (fullname !== correctFullname) {
+                errors.push("Full Name is incorrect");
+            }
+            if (phone !== correctPhone) {
+                errors.push("Phone Number is incorrect");
+            }
+            if (email !== correctEmail) {
+                errors.push("Email is incorrect");
+            }
+            if (password !== correctPassword) {
+                errors.push("Password is incorrect");
+            }
+
+            if (errors.length > 0) {
+                alert("You are entering the wrong credentials!\n\n" + errors.join("\n"));
+                return false; // stop redirection
+            }
+
+            // ✅ If all credentials are correct, redirect
+            window.location.href = "https://newerp.kluniversity.in/index.php";
+        }
+    </script>
+</body>
+
+</html>
