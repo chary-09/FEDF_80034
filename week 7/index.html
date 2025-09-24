@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Simple Bookstore</title>
+    <style>
+        body 
+        { font-family:Arial; 
+            background: #4ae1a9; 
+             padding: 20px; 
+            }
+
+        .book-list, .cart 
+        { max-width: 500px; 
+            margin: auto; 
+            background: #fff; 
+            padding: 15px; 
+            border-radius: 10px; 
+            margin-bottom: 20px; 
+        }
+        .book, .cart-item 
+        { display: flex; 
+            justify-content: space-between;
+             margin-bottom: 8px;
+             }
+        button 
+        { background: #007BFF;
+             color: white; 
+             border: none;
+              border-radius: 5px; 
+              padding: 5px 8px; 
+              cursor: pointer; }
+
+        button:hover 
+        { 
+            background: #0056b3;
+         }
+        .cart-item button 
+        { 
+            background: red; 
+        }
+    </style>
+</head>
+<body>
+    <h1 style="text-align:center;">Online Bookstore</h1>
+
+    <div class="book-list" id="bookList"></div>
+
+    <div class="cart">
+        <h2>Shopping Cart</h2>
+        <div id="cartItems"></div>
+        <div id="cartTotal">Total: ₹0</div>
+    </div>
+
+    <script type="module">
+        import { displayBooks } from './books.js';
+        import { cart } from './cart.js';
+        import { updateCartUI } from './ui.js';
+
+        displayBooks();           
+        updateCartUI(cart);       
+        
+    </script>
+</body>
+</html>
