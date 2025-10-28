@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Feedback App — Single File</title>
+
+  <!-- Simple styling inspired by Material UI -->
+  <style>
+    :root{
+      --primary:#1976d2;
+      --surface:#ffffff;
+      --muted:#6b7280;
+      --card-radius:12px;
+      --shadow: 0 6px 18px rgb(255, 0, 0);
+      font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+    }
+    body{
+      margin:0;
+      background:#111111;
+      color:#0f172a;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+    }
+    header{
+      background:var(--primary);
+      color:white;
+      padding:12px 20px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      box-shadow: 0 2px 8px rgb(255, 0, 0);
+    }
+    header h1{ margin:0; font-size:20px; font-weight:600; letter-spacing:0.1px; }
+    .container{
+      max-width:760px;
+      margin:28px auto;
+      padding:0 16px;
+    }
+    .card{
+      background:var(--surface);
+      border-radius:var(--card-radius);
+      
+      padding: 24px;
+      box-shadow:var(--shadow);
+    }
+    .title{
+      color: #000;;
+      text-align:center;
+      font-size:22px;
+      margin-bottom:8px;
+      font-weight:600;
+    }
+    label.small{ font-size:14px; color:var(--muted); display:block; margin-bottom:6px; }
+    .rating-row{ display:flex; gap:12px; align-items:center; justify-content:center; margin:12px 0; }
+    .rating-btn{
+      width:44px; height:44px; border-radius:8px; border:1px solid #e6e9ee; display:flex; align-items:center; justify-content:center; cursor:pointer;
+      background:white; font-weight:700; color:#111827;
+    }
+    .rating-btn.selected{ background:linear-gradient(180deg,var(--primary),#115293); color:white; box-shadow: 0 6px 14px rgba(25,118,210,0.18); }
+    textarea{ width:100%; min-height:84px; padding:10px; border-radius:8px; border:1px solid #e6e9ee; resize:vertical; font-size:14px; }
+    .btn{ display:inline-block; padding:10px 14px; border-radius:8px; cursor:pointer; border:0; font-weight:600; }
+    .btn-primary{ background:var(--primary); color:white; width:100%; margin-top:14px; }
+    .btn-clear{ background:#ef4444; color:white; border:0; padding:8px 12px; border-radius:8px; cursor:pointer; margin-left:8px;}
+    .error{ color:#b91c1c; margin-top:12px; font-weight:600; text-align:center; }
+    .feedback-list{ margin-top:22px; }
+    .feedback-item{ padding:12px 10px; border-radius:10px; display:flex; gap:12px; align-items:flex-start; background:#fafafa; border:1px solid #eef2ff; margin-bottom:10px;}
+    .star{ color:#f59e0b; font-weight:800; margin-right:6px; }
+    .item-primary{ font-weight:600; font-size:15px; display:flex; align-items:center; gap:8px; }
+    .muted{ color:var(--muted); font-size:14px; }
+    .toolbar-actions{ display:flex; align-items:center; gap:8px; }
+    @media (max-width:520px){
+      .rating-row{ gap:8px; }
+      .rating-btn{ width:38px; height:38px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Feedback App</h1>
+    <div class="toolbar-actions">
+      <button id="clearAllBtn" class="btn-clear" title="Clear all feedback">Clear All</button>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="card" id="root-card">
+      <!-- React will mount here -->
+      <div id="root"></div>
+    </div>
+  </div>
+
+  <!-- React + Babel (for in-browser JSX) -->
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/babel-standalone@6.26.0/babel.min.js"></script>
+
+  <!-- App code (JSX) -->
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+
+    function App(){
+      // local state serves same role as Redux in the original app
+      const [rating, setRating] = useState('');
+      const [comment, setComment] = useState('');
+      const [error, setError] = useState('');
+      const [entries, setEntries] = useState([]);
+
+      // hook to connect Clear All header button to local handler
+      useEffect(() => {
+        const btn = document.getElementById('clearAllBtn');
+        const handler = () => {
+          if(entries.length === 0) return;
+          if(confirm('Clear all feedback? This cannot be undone.')){
+            setEntries([]);
+          }
+        };
+        btn.addEventListener('click', handler);
+        return () => btn.removeEventListener('click', handler);
+      }, [entries]);
+
+      const handleSubmit = (e) => {
+        e.preventDefault();
+        if(!rating){
+          setError('Please select a rating before submitting!');
+          return;
+        }
+        const payload = { rating: rating.toString(), comment: comment.trim() };
+        setEntries(prev => [...prev, payload]);
+        setRating('');
+        setComment('');
+        setError('');
+      };
+
+      const handleClear = () => {
+        if(entries.length === 0) return;
+        if(confirm('Clear all feedback?')){
+          setEntries([]);
+        }
+      };
+
+      return (
+        <div>
+          <div className="title">Feedback Form</div>
+
+          <form onSubmit={handleSubmit} noValidate>
+            <label className="small">Select Rating</label>
+            <div className="rating-row" role="radiogroup" aria-label="rating">
+              {[1,2,3,4,5].map(n => (
+                <button
+                  key={n}
+                  type="button"
+                  className={"rating-btn " + (rating==String(n) ? 'selected' : '')}
+                  onClick={() => setRating(String(n))}
+                  aria-pressed={rating==String(n)}
+                >
+                  {n}
+                </button>
+              ))}
+            </div>
+
+            <label className="small" style={{marginTop:8}}>Comments (optional)</label>
+            <textarea
+              placeholder="Write something... (optional)"
+              value={comment}
+              onChange={(e)=> setComment(e.target.value)}
+            />
+
+            {error && <div className="error" role="alert">{error}</div>}
+
+            <button type="submit" className="btn btn-primary">Submit Feedback</button>
+          </form>
+
+          <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginTop:18}}>
+            <h3 style={{margin:0}}>Submitted Feedback</h3>
+            <div>
+              <button onClick={handleClear} className="btn-clear" style={{display: entries.length ? 'inline-block' : 'none'}}>Clear</button>
+            </div>
+          </div>
+
+          <div className="feedback-list" aria-live="polite">
+            {entries.length === 0 ? (
+              <div className="muted" style={{marginTop:10}}>No feedback submitted yet.</div>
+            ) : (
+              entries.map((entry, idx) => (
+                <div className="feedback-item" key={idx}>
+                  <div style={{minWidth:56, display:'flex', alignItems:'center', justifyContent:'center'}}>
+                    <div className="star">★</div>
+                  </div>
+                  <div style={{flex:1}}>
+                    <div className="item-primary">Rating: {entry.rating}</div>
+                    <div className="muted" style={{marginTop:6}}>{entry.comment || 'No comment provided.'}</div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    const rootEl = document.getElementById('root');
+    const root = ReactDOM.createRoot(rootEl);
+    root.render(<App />);
+  </script>
+</body>
+</html>
